@@ -1,6 +1,8 @@
+require 'pry'
+
 def get_calc_str(prompt)
-  puts
-  puts prompt
+  puts " . . . "
+  puts "> #{prompt}"
   gets.chomp
 end
 
@@ -15,28 +17,29 @@ def calculate(str)
 
   # Calculate using my own regex-based method
   m = /^(?<first>\d+)(?<operator>[+-\/:*%])(?<second>\d+)$/.match(str)
-  first = m["first"].to_i
-  second = m["second"].to_i
-  operator = m["operator"]
 
-  case operator
-  when "+"
-    first + second
-  when "-"
-    first - second
-  when "*"
-    first * second
-  when "/"
-    first / second
-  when "%"
-    first % second
-  else
-    nil
-  end
+  res = case m["operator"]
+        when "+"
+          m["first"].to_i + m["second"].to_i
+        when "-"
+          m["first"].to_i - m["second"].to_i
+        when "*"
+          m["first"].to_i * m["second"].to_i
+        when "/", ":"
+          m["first"].to_f / m["second"].to_i
+        when "%"
+          m["first"].to_i % m["second"].to_i
+        else
+          nil
+        end
+
+  "= " + res.to_s
 end
 
+calc_prompt = "What do you want to calculate? (Enter 'exit' to stop.)"
+
 while true
-  puts calculate( get_calc_str "What do you want to calculate? (Enter 'exit' to stop.)" )
+  puts calculate(get_calc_str(calc_prompt))
 end
 
 
