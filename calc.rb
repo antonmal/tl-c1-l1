@@ -38,7 +38,7 @@ end
 
 calc_prompt = "What do you want to calculate? (Enter 'exit' to stop.)"
 
-while true
+loop do
   puts calculate(get_calc_str(calc_prompt))
 end
 
