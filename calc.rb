@@ -10,7 +10,9 @@ def calculate(str)
   exit if str == "exit"
 
   str = str.delete(" ")
-  return "I do not understand. Try something simpler like '1+1'." unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
+  
+  return "I do not understand. Try something simpler like '1+1'."
+    unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
   
   # Calculate using the built-in eval method
   # return eval(str)
