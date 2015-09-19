@@ -6,7 +6,7 @@
 
 require 'pry'
 
-OPTIONS = { "p" => "paper", "r" => "rock", "s" => "scissors", "e" => "exit" }
+OPTIONS = { "p" => "paper", "r" => "rock", "s" => "scissors" }
 RESULTS = { 1 => "User won", 0 => "It's a tie", -1 => "Computer won" }
 
 
@@ -15,8 +15,8 @@ def user_choice
     puts " ." * 20
 
     prompt = "Choose "
-    prompt += OPTIONS.map { |k,v| "(#{v[0].upcase})#{v[1..-1]}" }.join(", ").reverse.sub(", ".reverse, " or ".reverse).reverse
-    prompt += " > "
+    prompt += OPTIONS.map { |k,v| "(#{v[0].upcase})#{v[1..-1]}" }.join(", ")
+    prompt += " or (E)xit > "
     print prompt
 
     choice = gets.chomp.downcase
@@ -27,10 +27,11 @@ def user_choice
       choice = OPTIONS.key(choice)
     end
 
+    # Exit the program to shell if the user inputs "e"
     exit if choice == "e"
 
     # If choice is one of the valid options, return it.
-    # Otherwise return nil.
+    # Otherwise ask to make another choice.
     if OPTIONS.keys.include?(choice)
       return choice
     else
@@ -41,24 +42,20 @@ end
 
 
 def computer_choice
-  ["p", "r", "s"].sample
+  OPTIONS.keys.sample
 end
 
 
 def user_won?(user_chose, computer_chose)
+  turn = user_chose + computer_choice
 
-  return 0 if user_chose == computer_chose
-
-  case user_chose
-  when "p"
-    return 1 if computer_chose == "r"
-    return -1 if computer_chose == "s"
-  when "r"
-    return 1 if computer_chose == "s"
-    return -1 if computer_chose == "p"
-  when "s"
-    return 1 if computer_chose == "p"
-    return -1 if computer_chose == "r"
+  case turn
+  when "pp", "rr", "ss"
+    return 0
+  when "pr", "rs", "sp"
+    return 1
+  when "ps", "rp", "sr"
+    return -1
   end
 end
 
@@ -87,8 +84,6 @@ loop do
 
   puts stats
 
-  # puts "Do you want to play again? (Y/N)"
-  # exit if ["n", "no"].include?(gets.chomp.downcase)
 end
 
 
