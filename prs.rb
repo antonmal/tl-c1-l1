@@ -11,8 +11,10 @@ RESULTS = { 1 => "User won", 0 => "It's a tie", -1 => "Computer won" }
 
 
 def user_choice
-  loop do 
+  loop do
+    puts
     puts " ." * 20
+    puts
 
     prompt = "Choose "
     prompt += OPTIONS.map { |k,v| "(#{v[0].upcase})#{v[1..-1]}" }.join(", ")
@@ -27,12 +29,9 @@ def user_choice
       choice = OPTIONS.key(choice)
     end
 
-    # Exit the program to shell if the user inputs "e"
-    exit if choice == "e"
-
-    # If choice is one of the valid options, return it.
-    # Otherwise ask to make another choice.
-    if OPTIONS.keys.include?(choice)
+    # If choice is one of the valid options, including "e" (exit), return it.
+    # Otherwise ask to ghoose once again.
+    if OPTIONS.keys.push("e").include?(choice)
       return choice
     else
       puts "I do not understand. Please, choose one of these options:"
@@ -46,8 +45,8 @@ def computer_choice
 end
 
 
-def user_won?(user_chose, computer_chose)
-  turn = user_chose + computer_choice
+def user_won?(usr, cmp)
+  turn = usr + cmp
 
   case turn
   when "pp", "rr", "ss"
@@ -64,20 +63,34 @@ log = []
 totals = {}
 stats = {}
 
+puts 
+puts "Welcome to the PRS (Paper Rock Scissors) game!"
+
 loop do
-  u = user_choice
-  c = computer_choice
-  r = user_won?(u, c)
+  usr = user_choice
+  # Print out the log and exit the program to shell if the user inputs "e"
+  if usr == "e"
+    puts
+    puts "Here is the log of your game:"
+    puts log
+    puts
+    puts "See you soon! :)"
+    puts
+    exit
+  end
 
-  puts "User: #{OPTIONS[u]} <=> Computer: #{OPTIONS[c]}"
-  puts "*** #{RESULTS[r].upcase}! ***"
+  cmp = computer_choice
+  res = user_won?(usr, cmp)
 
-  log += [{ user: u, computer: c, result: r }]
+  puts "User: #{OPTIONS[usr]} <=> Computer: #{OPTIONS[cmp]}"
+  puts "*** #{RESULTS[res].upcase}! ***"
 
-  if !totals.has_key?(r)
-    totals[r] = 1
+  log += [{ user: usr, computer: cmp, result: res }]
+
+  if !totals.has_key?(res)
+    totals[res] = 1
   else
-    totals[r] += 1
+    totals[res] += 1
   end
 
   totals.each { |k,v| stats[RESULTS[k]] = ( v.to_f / log.size * 100 ).round.to_s + "%" }
