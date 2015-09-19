@@ -12,7 +12,7 @@ RESULTS = { 1 => "User won", 0 => "It's a tie", -1 => "Computer won" }
 
 def user_choice
   loop do 
-    puts " . . . . . . . . . . ".center(20)
+    puts " ." * 20
 
     prompt = "Choose "
     prompt += OPTIONS.map { |k,v| "(#{v[0].upcase})#{v[1..-1]}" }.join(", ").reverse.sub(", ".reverse, " or ".reverse).reverse
