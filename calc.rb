@@ -11,8 +11,7 @@ def calculate(str)
 
   str = str.delete(" ")
   
-  return "I do not understand. Try something simpler like '1+1'."
-    unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
+  return "I do not understand. Try something simpler like '1+1'." unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
   
   # Calculate using the built-in eval method
   # return eval(str)
@@ -39,9 +38,12 @@ def calculate(str)
 end
 
 calc_prompt = "What do you want to calculate? (Enter 'exit' to stop.)"
+system('clear')
 
 loop do
   puts calculate(get_calc_str(calc_prompt))
+  sleep 2
+  system('clear')
 end
 
 
