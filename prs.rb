@@ -31,7 +31,7 @@ def user_choice
 
     # If choice is one of the valid options, including "e" (exit), return it.
     # Otherwise ask to ghoose once again.
-    if OPTIONS.keys.push("e").include?(choice)
+    if OPTIONS.keys.push("e", "exit").include?(choice)
       return choice
     else
       puts "I do not understand. Please, choose one of these options:"
@@ -69,7 +69,7 @@ puts "Welcome to the PRS (Paper Rock Scissors) game!"
 loop do
   usr = user_choice
   # Print out the log and exit the program to shell if the user inputs "e"
-  break if usr == "e"
+  break if usr == "e" || usr == "exit"
 
   cmp = computer_choice
   res = user_won?(usr, cmp)
