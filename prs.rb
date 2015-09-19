@@ -69,15 +69,7 @@ puts "Welcome to the PRS (Paper Rock Scissors) game!"
 loop do
   usr = user_choice
   # Print out the log and exit the program to shell if the user inputs "e"
-  if usr == "e"
-    puts
-    puts "Here is the log of your game:"
-    puts log
-    puts
-    puts "See you soon! :)"
-    puts
-    exit
-  end
+  break if usr == "e"
 
   cmp = computer_choice
   res = user_won?(usr, cmp)
@@ -99,6 +91,12 @@ loop do
 
 end
 
+puts
+puts "Here is the log of your game:"
+puts log
+puts
+puts "See you soon! :)"
+puts
 
 
 
