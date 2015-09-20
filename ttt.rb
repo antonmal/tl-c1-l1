@@ -1,3 +1,10 @@
+
+# (amalkov)
+# TicTacToe game for the Tealeaf C1-L1 assignment
+# 1. To practice more complicated logic, created it with flexible board size.
+# 2. Added labels to the board (letters for rows, numbers for columns)
+# 3. 
+
 require 'pry'
 require 'colorize'
 
@@ -167,11 +174,13 @@ end
 
 def check_3_in_a_row(moves_hash)
 
-  board_array = Array.new(3) { Array.new(3, " ") }
+  board_array = Array.new(ROWS) { Array.new(COLUMNS, " ") }
   moves_hash.each do |cell, marker|
     board_array[ ROW_LABELS.index(cell[0]) ][ cell[1].to_i - 1 ] = marker
   end
   
+
+
   # Check in horizontal lines
   for row in 0..(ROWS-1) do
     MARKERS.each do |player, marker|
