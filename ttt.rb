@@ -4,11 +4,10 @@
 
 # 1. To practice more complicated logic, created it with flexible board size.
 # 2. Added labels to the board (letters for rows, numbers for columns).
-# 3. Players enters chess-style references to board cells.
+# 3. To make a move player enters chess-style references to board cells.
 #       This is more universal for different board sizes.
-# 4. Second human oponent option.
-# 5. For computer opponent - first simple random logic.
-#     Then added minimax algorithm.
+# 4. Second human opponent option.
+# 5. For computer opponent added minimax algorithm.
 # 5. Used colorize library to style text messages in the shell.
 
 
@@ -262,8 +261,6 @@ def get_computer_move(moves_hash)
 
   end
 
-  binding.pry
-
   best_weight = move_weights.values.max
   best_move = move_weights.key(best_weight)
 
@@ -309,7 +306,8 @@ def minimax(board_state, marker = MARKERS['Player 2'] )
   end
 
   # Do the min or the max calculation
-  if next_move_marker == MARKERS['Player 2'] # It's computer's turn
+  #   depending on whose move it is.
+  if next_move_marker == MARKERS['Player 2'] # It's computer's move
       return weigh_moves.values.max
   else
       return weigh_moves.values.min
