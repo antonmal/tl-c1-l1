@@ -1,9 +1,16 @@
 
 # (amalkov)
 # TicTacToe game for the Tealeaf C1-L1 assignment
+
 # 1. To practice more complicated logic, created it with flexible board size.
-# 2. Added labels to the board (letters for rows, numbers for columns)
-# 3. 
+# 2. Added labels to the board (letters for rows, numbers for columns).
+# 3. Players enters chess-style references to board cells.
+#       This is more universal for different board sizes.
+# 4. Second human oponent option.
+# 5. For computer opponent - first simple random logic.
+#     Then added minimax algorithm.
+# 5. Used colorize library to style text messages in the shell.
+
 
 require 'pry'
 require 'colorize'
@@ -11,52 +18,50 @@ require 'colorize'
 COLUMNS = 3
 ROWS = 3
 ROW_LABELS = ('A'..'Z').first(ROWS)
-MARKERS = { 'Player 1' => 'X', 'Player 2' => 'O' }
+MARKERS = { "Player 1" => "X", "Player 2" => "O" }
 
-def draw_field(moves_hash)
+def draw_board(moves_hash)
 
-  column_width = 9
-  row_height = 3
-  columns_number = COLUMNS
-  rows_number = ROWS
-  label_width = 2
-  label_height = 1
-  row_letters = ROW_LABELS
-  field = {}
+  column_width = 9  # Width of each cell in characters excluding borders
+  row_height = 3    # Height of each cell in characters excluding borders
+  label_width = 2   # Width of the first column in which row labels are displayed
+  label_height = 1  # Height of the first row where the column lables are displayed
+
+  board = {}
 
   # Add column labels (numbers 1..n)
-  field[0] = " " * label_width + ("|" + " "*column_width) * columns_number + "|"
-  for col in 1..columns_number do
-    field[0][label_width + col*(column_width + 1) - (column_width/2 + 1)] = col.to_s
+  board[0] = " " * label_width + ("|" + " "*column_width) * COLUMNS + "|"
+  for col in 1..COLUMNS do
+    board[0][label_width + col*(column_width + 1) - (column_width/2 + 1)] = col.to_s
   end
 
-  # Draw empty field
-  for row in 0..rows_number do
+  # Draw empty board
+  for row in 0..ROWS do
     # Draw horizontal lines between cells
-    field[label_height + row*(row_height + 1)] = "-" * label_width + ("+" + "-"*column_width) * columns_number + "+"
+    board[label_height + row*(row_height + 1)] = "-" * label_width + ("+" + "-"*column_width) * COLUMNS + "+"
 
     # Draw empty cells
     for row_line in 1..row_height do
-      field[label_height + row*(row_height + 1) + row_line] = " " * label_width + ("|" + " "*column_width) * columns_number + "|"
+      board[label_height + row*(row_height + 1) + row_line] = " " * label_width + ("|" + " "*column_width) * COLUMNS + "|"
       
       # If in the middle of the row, add row label (letters A, B, ...)
       if row_line == row_height / 2 + 1
-        field[label_height + row*(row_height + 1) + row_line][0] = row_letters[row]
+        board[label_height + row*(row_height + 1) + row_line][0] = ROW_LABELS[row]
       end
-    end unless row == rows_number # Do not draw emty cells below the bottom line
+    end unless row == ROWS # Do not draw emty cells below the bottom line
   end
 
-  # Show previously made moves on the drawn field
+  # Show previously made moves on the drawn board
   moves_hash.each do |cell, marker|
-    marker_row = row_letters.index(cell[0]) + 1
+    marker_row = ROW_LABELS.index(cell[0]) + 1
     marker_column = cell[1].to_i
     marker_row_center = label_height + marker_row*(row_height + 1) - (row_height/2 + 1)
     marker_column_center = label_width + marker_column*(column_width + 1) - (column_width/2 + 1)
 
-    field[marker_row_center][marker_column_center] = marker
+    board[marker_row_center][marker_column_center] = marker
   end
 
-  field.each { |key, row_line| puts row_line }
+  board.each { |key, row_line| puts row_line }
 
 end
 
@@ -64,7 +69,7 @@ end
 def get_player_move(moves_hash, player)
 
   system('clear')
-  draw_field(moves_hash)
+  draw_board(moves_hash)
 
   puts
   if MARKERS[player] == 'X'
@@ -84,7 +89,7 @@ def get_player_move(moves_hash, player)
 
     if /^\w\d$/.match(move).nil?
       system('clear')
-      draw_field(moves_hash)
+      draw_board(moves_hash)
       puts
       puts "*** I do not understand. ***".yellow
       puts "  Enter the cell where you want to move in the following format: 'A1',"
@@ -93,7 +98,7 @@ def get_player_move(moves_hash, player)
 
     elsif !ROW_LABELS.include?(move[0])
       system('clear')
-      draw_field(moves_hash)
+      draw_board(moves_hash)
       puts
       puts "*** Wrong row label. ***".yellow
       puts "  Should be between #{ROW_LABELS[0]} and #{ROW_LABELS[-1]}"
@@ -102,22 +107,19 @@ def get_player_move(moves_hash, player)
 
     elsif !(1..COLUMNS).include?(move[1].to_i)
       system('clear')
-      draw_field(moves_hash)
+      draw_board(moves_hash)
       puts
       puts "*** Wrong column number. ***".yellow
       puts "  Should be between 1 and #{COLUMNS}"
       puts "Try again."
       puts "VVV"
 
-    elsif moves_hash.has_key?(move)
+    elsif moves_hash[move] != " "
       system('clear')
-      draw_field(moves_hash)
+      draw_board(moves_hash)
       puts
-      if moves_hash[move] == "X"
-        puts "*** You already made a move here. ***".yellow
-      else
-        puts "*** Comuter has already moved here. ***".yellow
-      end
+      puts "*** This cell is already occupied. ***".yellow
+      puts
       puts "Choose an empty cell."
       puts
       puts "VVV"
@@ -128,19 +130,17 @@ def get_player_move(moves_hash, player)
     end
   end
 
-  check_if_over(moves_hash)
-
 end
 
 
-def check_if_over(moves_hash)
+def game_over?(moves_hash)
 
   # Check if someone won
   won = check_3_in_a_row(moves_hash)
 
   if !won.nil?
     system('clear')
-    draw_field(moves_hash)
+    draw_board(moves_hash)
 
     puts
     puts "*** Game over ***".yellow
@@ -154,14 +154,14 @@ def check_if_over(moves_hash)
   end
 
   # Check if board is full (thus there is a tie)
-  if moves_hash.size >= ROWS * COLUMNS
+  if board_full(moves_hash)
     system('clear')
-    draw_field(moves_hash)
+    draw_board(moves_hash)
 
     puts
     puts "*** Game over ***".yellow
     puts
-    puts "  The board is full"
+    puts "  It's a TIE!!!"
     puts
     puts "Thanks for playing! See you next time!"
     puts
@@ -172,28 +172,38 @@ def check_if_over(moves_hash)
 end
 
 
+def board_full(moves_hash)
+  moves_hash.values.count(" ") == 0
+end
+
+
+def get_board_array(moves_hash)
+  ba = Array.new(ROWS) { Array.new(COLUMNS, " ") }
+  moves_hash.each do |cell, marker|
+    ba[ ROW_LABELS.index(cell[0]) ][ cell[1].to_i - 1 ] = marker
+  end
+  ba
+end
+
+
 def check_3_in_a_row(moves_hash)
 
-  board_array = Array.new(ROWS) { Array.new(COLUMNS, " ") }
-  moves_hash.each do |cell, marker|
-    board_array[ ROW_LABELS.index(cell[0]) ][ cell[1].to_i - 1 ] = marker
-  end
+  board_array = get_board_array(moves_hash)
   
-
-
   # Check in horizontal lines
-  for row in 0..(ROWS-1) do
+  (0..(ROWS-1)).each do |row|
     MARKERS.each do |player, marker|
       if board_array[row].join.include?( marker*3 )
         return marker
       end
     end
+
   end
 
   # Check in vertical lines
-  for column in 0..(COLUMNS-1) do
+  (0..(COLUMNS-1)).each do |column|
     column_string = ""
-    for row in 0..(ROWS-1) do
+    (0..(ROWS-1)).each do |row|
       column_string += board_array[row][column]
     end
     MARKERS.each do |player, marker|
@@ -204,11 +214,11 @@ def check_3_in_a_row(moves_hash)
   end
 
   # Check in diagonal lines
-  # For now - only the main diagonals
+  # For now - only the main diagonals (not suitable for board sizes > 3)
   diagonal_top_bottom = ""
   diagonal_bottom_top = ""
 
-  for column in 0..(COLUMNS-1) do
+  (0..(COLUMNS-1)).each do |column|
       diagonal_top_bottom += board_array[column][column]
       diagonal_bottom_top += board_array[board_array.size - 1 - column][column]
   end
@@ -229,28 +239,117 @@ end
 
 def get_computer_move(moves_hash)
 
-  check_full(moves_hash)
+  system 'clear'
+  draw_board(moves_hash)
+  puts
+  puts "Computer is thinking..."
+  sleep 1
 
-  loop do
-    move = ROW_LABELS.sample + (1..COLUMNS).to_a.sample.to_s
-    if !moves_hash.has_key?(move)
-      moves_hash[move] = MARKERS['Player 2']
-      break
+  # Simple random empty cell logic
+  # move = get_available_moves(moves_hash).sample
+  # moves_hash[move] = MARKERS['Player 2']
+
+  # More complex AI logic (Minimax algorythm)
+  move_weights = {} # a hash of weights for each available move
+
+  # Populate the weights hash, recursing as needed
+  get_available_moves(moves_hash).each do |move|
+
+    new_board_state = {}
+    new_board_state.merge!(moves_hash).update( { move => MARKERS['Player 2'] } )
+
+    move_weights.merge!({ move => minimax(new_board_state) })
+
+  end
+
+  binding.pry
+
+  best_weight = move_weights.values.max
+  best_move = move_weights.key(best_weight)
+
+  moves_hash[best_move] = MARKERS['Player 2'] 
+end
+
+
+def get_available_moves(moves_hash)
+  moves_hash.select { |cell, marker| marker == " " }.keys
+end
+
+
+def computer_move_weight(moves_hash)
+    # If computer wins
+    if check_3_in_a_row(moves_hash) == MARKERS['Player 2']
+        return 1
+    elsif check_3_in_a_row(moves_hash) == MARKERS['Player 1']
+        return -1
+    else
+        return 0
     end
+end
+
+
+def minimax(board_state, marker = MARKERS['Player 2'] )
+
+  # If game is over because someone won or because the board is full
+  #   then stop weighing subsecuent moves and return the weight of the last move
+  return computer_move_weight(board_state) if check_3_in_a_row(board_state) || board_full(board_state)
+
+  # Cycle markers for each subsecuent move
+  next_move_marker = MARKERS.select {|p, m| m != marker }.values[0]
+  weigh_moves = {} # a hash of weights for each available move
+
+  # Populate the weights array, recursing as needed
+  get_available_moves(board_state).each do |next_move|
+
+      new_board_state = {}
+      new_board_state.merge!(board_state).update( { next_move => next_move_marker } )
+      next_move_weight = minimax(new_board_state, next_move_marker)
+
+      weigh_moves.merge!({ next_move => next_move_weight })
+  end
+
+  # Do the min or the max calculation
+  if next_move_marker == MARKERS['Player 2'] # It's computer's turn
+      return weigh_moves.values.max
+  else
+      return weigh_moves.values.min
   end
 
 end
 
 
-moves_hash = {}
+def init_moves_hash
+  mh = {}
+  (1..COLUMNS).each do |column|
+    (0..(ROWS-1)).each do |row|
+      mh[ROW_LABELS[row]+column.to_s] = " "
+    end
+  end
+  mh
+
+  # Pre-filled board to test computer AI
+  # {
+  #   "A1" => "X", "A2" => "O", "A3" => " ",
+  #   "B1" => "X", "B2" => "O", "B3" => " ",
+  #   "C1" => "O", "C2" => "X", "C3" => " ",
+  # }
+end 
+
+
+# The main game loop
+
+moves_hash = init_moves_hash
 
 loop do
 
   get_player_move(moves_hash, 'Player 1')
+  game_over?(moves_hash)
 
-  get_player_move(moves_hash, 'Player 2')
+  # get_player_move(moves_hash, 'Player 2')
+  # game_over?(moves_hash)
 
-  #get_computer_move(moves_hash)
+  get_computer_move(moves_hash)
+  game_over?(moves_hash)
 
 end
 
