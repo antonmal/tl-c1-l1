@@ -30,17 +30,17 @@ def draw_board(moves_hash)
 
   # Add column labels (numbers 1..n)
   board[0] = " " * label_width + ("|" + " "*column_width) * COLUMNS + "|"
-  for col in 1..COLUMNS do
+  (1..COLUMNS).each do |col|
     board[0][label_width + col*(column_width + 1) - (column_width/2 + 1)] = col.to_s
   end
 
   # Draw empty board
-  for row in 0..ROWS do
+  (0..ROWS).each do |row|
     # Draw horizontal lines between cells
     board[label_height + row*(row_height + 1)] = "-" * label_width + ("+" + "-"*column_width) * COLUMNS + "+"
 
     # Draw empty cells
-    for row_line in 1..row_height do
+    (1..row_height).each do |row_line|
       board[label_height + row*(row_height + 1) + row_line] = " " * label_width + ("|" + " "*column_width) * COLUMNS + "|"
       
       # If in the middle of the row, add row label (letters A, B, ...)
@@ -67,7 +67,7 @@ end
 
 def get_player_move(moves_hash, player)
 
-  system('clear')
+  clear_shell
   draw_board(moves_hash)
 
   puts
@@ -87,41 +87,16 @@ def get_player_move(moves_hash, player)
     exit if move == "E" || move == "EXIT"
 
     if /^\w\d$/.match(move).nil?
-      system('clear')
-      draw_board(moves_hash)
-      puts
-      puts "*** I do not understand. ***".yellow
-      puts "  Enter the cell where you want to move in the following format: 'A1',"
-      puts "  where 'A' is the row label and '1' is the column number."
-      puts "VVV"
+      say_wrong_cell
 
     elsif !ROW_LABELS.include?(move[0])
-      system('clear')
-      draw_board(moves_hash)
-      puts
-      puts "*** Wrong row label. ***".yellow
-      puts "  Should be between #{ROW_LABELS[0]} and #{ROW_LABELS[-1]}"
-      puts "Try again."
-      puts "VVV"
+      say_wrong_row
 
     elsif !(1..COLUMNS).include?(move[1].to_i)
-      system('clear')
-      draw_board(moves_hash)
-      puts
-      puts "*** Wrong column number. ***".yellow
-      puts "  Should be between 1 and #{COLUMNS}"
-      puts "Try again."
-      puts "VVV"
+      say_wrong_column
 
     elsif moves_hash[move] != " "
-      system('clear')
-      draw_board(moves_hash)
-      puts
-      puts "*** This cell is already occupied. ***".yellow
-      puts
-      puts "Choose an empty cell."
-      puts
-      puts "VVV"
+      say_cell_busy
 
     else
       moves_hash[move] = MARKERS[player]
@@ -132,38 +107,77 @@ def get_player_move(moves_hash, player)
 end
 
 
+def say_wrong_input
+  clear_shell
+  draw_board(moves_hash)
+  puts
+  puts "*** I do not understand. ***".yellow
+  puts "  Enter the cell where you want to move in the following format: 'A1',"
+  puts "  where 'A' is the row label and '1' is the column number."
+  puts "VVV"
+end
+
+def say_wrong_row
+  clear_shell
+  draw_board(moves_hash)
+  puts
+  puts "*** Wrong row label. ***".yellow
+  puts "  Should be between #{ROW_LABELS[0]} and #{ROW_LABELS[-1]}"
+  puts "Try again."
+  puts "VVV"
+end
+
+def say_wrong_column
+  clear_shell
+  draw_board(moves_hash)
+  puts
+  puts "*** Wrong column number. ***".yellow
+  puts "  Should be between 1 and #{COLUMNS}"
+  puts "Try again."
+  puts "VVV"
+end
+
+def say_cell_busy
+  clear_shell
+  draw_board(moves_hash)
+  puts
+  puts "*** This cell is already occupied. ***".yellow
+  puts
+  puts "Choose an empty cell."
+  puts
+  puts "VVV"
+end
+
+
 def game_over?(moves_hash)
 
   # Check if someone won
   won = check_3_in_a_row(moves_hash)
 
-  if !won.nil?
-    system('clear')
-    draw_board(moves_hash)
-
-    puts
-    puts "*** Game over ***".yellow
-    puts
-    puts "#{MARKERS.key(won)} is the winner !!!"
-    puts
-    puts "Thanks for playing! See you next time!"
-    puts
+  if won
+    refresh_board_with(moves_hash,
+      "",
+      "*** Game over ***".yellow,
+      "",
+      "#{MARKERS.key(won)} is the winner !!!",
+      "",
+      "Thanks for playing! See you next time!",
+      "")
 
     exit
   end
 
   # Check if board is full (thus there is a tie)
   if board_full(moves_hash)
-    system('clear')
-    draw_board(moves_hash)
-
-    puts
-    puts "*** Game over ***".yellow
-    puts
-    puts "  It's a TIE!!!"
-    puts
-    puts "Thanks for playing! See you next time!"
-    puts
+    refresh_board_with(moves_hash,
+      "",
+      "*** Game over ***".yellow,
+      "",
+      "  It's a TIE!!!",
+      "",
+      "",
+      "Thanks for playing! See you next time!",
+      "")
 
     exit
   end
@@ -190,7 +204,7 @@ def check_3_in_a_row(moves_hash)
   board_array = get_board_array(moves_hash)
   
   # Check in horizontal lines
-  (0..(ROWS-1)).each do |row|
+  (0...ROWS).each do |row|
     MARKERS.each do |player, marker|
       if board_array[row].join.include?( marker*3 )
         return marker
@@ -200,9 +214,9 @@ def check_3_in_a_row(moves_hash)
   end
 
   # Check in vertical lines
-  (0..(COLUMNS-1)).each do |column|
+  (0...COLUMNS).each do |column|
     column_string = ""
-    (0..(ROWS-1)).each do |row|
+    (0...ROWS).each do |row|
       column_string += board_array[row][column]
     end
     MARKERS.each do |player, marker|
@@ -217,7 +231,7 @@ def check_3_in_a_row(moves_hash)
   diagonal_top_bottom = ""
   diagonal_bottom_top = ""
 
-  (0..(COLUMNS-1)).each do |column|
+  (0...COLUMNS).each do |column|
       diagonal_top_bottom += board_array[column][column]
       diagonal_bottom_top += board_array[board_array.size - 1 - column][column]
   end
@@ -236,12 +250,23 @@ def check_3_in_a_row(moves_hash)
 end
 
 
-def get_computer_move(moves_hash)
+def clear_shell
+  system('clear') || system('cls')
+end
 
-  system 'clear'
+
+def refresh_board_with(moves_hash, *messages)
+  clear_shell
   draw_board(moves_hash)
   puts
-  puts "Computer is thinking..."
+  messages.each {|msg| puts msg }
+end
+
+
+def get_computer_move(moves_hash)
+
+  refresh_board_with(moves_hash,
+    "Computer is thinking...")
   sleep 1
 
   # Simple random empty cell logic
@@ -274,14 +299,14 @@ end
 
 
 def computer_move_weight(moves_hash)
-    # If computer wins
-    if check_3_in_a_row(moves_hash) == MARKERS['Player 2']
-        return 1
-    elsif check_3_in_a_row(moves_hash) == MARKERS['Player 1']
-        return -1
-    else
-        return 0
-    end
+  # If computer wins
+  if check_3_in_a_row(moves_hash) == MARKERS['Player 2']
+    return 1
+  elsif check_3_in_a_row(moves_hash) == MARKERS['Player 1']
+    return -1
+  else
+    return 0
+  end
 end
 
 
@@ -298,11 +323,11 @@ def minimax(board_state, marker = MARKERS['Player 2'] )
   # Populate the weights array, recursing as needed
   get_available_moves(board_state).each do |next_move|
 
-      new_board_state = {}
-      new_board_state.merge!(board_state).update( { next_move => next_move_marker } )
-      next_move_weight = minimax(new_board_state, next_move_marker)
+    new_board_state = {}
+    new_board_state.merge!(board_state).update( { next_move => next_move_marker } )
+    next_move_weight = minimax(new_board_state, next_move_marker)
 
-      weigh_moves.merge!({ next_move => next_move_weight })
+    weigh_moves.merge!({ next_move => next_move_weight })
   end
 
   # Do the min or the max calculation
@@ -317,13 +342,13 @@ end
 
 
 def init_moves_hash
-  mh = {}
+  moves_hash = {}
   (1..COLUMNS).each do |column|
     (0..(ROWS-1)).each do |row|
-      mh[ROW_LABELS[row]+column.to_s] = " "
+      moves_hash[ROW_LABELS[row]+column.to_s] = " "
     end
   end
-  mh
+  moves_hash
 
   # Pre-filled board to test computer AI
   # {
