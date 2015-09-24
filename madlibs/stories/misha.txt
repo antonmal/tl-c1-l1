@@ -1,0 +1,6 @@
+Hello, <noun>!
+
+I just want to ask you about the <verb>ing <noun>.
+You <verb>ed it yesterday, so I would like to <verb> it back.
+
+Yours <adverb>, <noun>.
