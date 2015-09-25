@@ -22,7 +22,6 @@ PARTS_OF_SPEECH = [
 ]
 
 def load_sample_words
-
   pos_hash = {}
 
   PARTS_OF_SPEECH.each do |pos|
@@ -54,28 +53,46 @@ begin
 
   story_text = File.exist?(ARGV[0]) ? File.read(ARGV[0]) : File.read("stories/" + ARGV[0])
 
+  ### Initial 'brute force' option
+  #
+  # PARTS_OF_SPEECH.each do |pos|
+  #   search_for = "<#{pos}>"
+  #   if pos == "verb"
+  #     while story_text.include?(search_for + "ed")
+  #       new_word = sample_words_hash[pos].sample
+  #       if new_word[-1] == "e"
+  #         new_word = new_word[0..-2]
+  #       end
+  #       story_text.sub!(search_for + "ed", new_word + "ed")
+  #     end
+  #     while story_text.include?(search_for + "ing")
+  #       new_word = sample_words_hash[pos].sample
+  #       if new_word[-1] == "e"
+  #         new_word = new_word[0..-2]
+  #       end
+  #       story_text.sub!(search_for + "ing", new_word + "ing")
+  #     end
+  #   end 
+  #   while story_text.include?(search_for)
+  #     new_word = sample_words_hash[pos].sample
+  #     story_text.sub!(search_for, new_word)
+  #   end
+  # end
+
+  ### More consize and readable option after watching the video
+  #
   PARTS_OF_SPEECH.each do |pos|
-    search_for = "<#{pos}>"
     if pos == "verb"
-      while story_text.include?(search_for + "ed")
-        new_word = sample_words_hash[pos].sample
-        if new_word[-1] == "e"
-          new_word = new_word[0..-2]
-        end
-        story_text.sub!(search_for + "ed", new_word + "ed")
+      story_text.gsub!("<verb>ed").each do
+        sample_word = sample_words_hash[pos].sample
+        sample_word[-1] == "e" ? sample_word[0..-2] + "ed" : sample_word + "ed"
       end
-      while story_text.include?(search_for + "ing")
-        new_word = sample_words_hash[pos].sample
-        if new_word[-1] == "e"
-          new_word = new_word[0..-2]
-        end
-        story_text.sub!(search_for + "ing", new_word + "ing")
+      story_text.gsub!("<verb>ing").each do
+        sample_word = sample_words_hash[pos].sample
+        sample_word[-1] == "e" ? sample_word[0..-2] + "ing" : sample_word + "ing"
       end
-    end 
-    while story_text.include?(search_for)
-      new_word = sample_words_hash[pos].sample
-      story_text.sub!(search_for, new_word)
     end
+    story_text.gsub!("<#{pos}>").each { sample_words_hash[pos].sample }
   end
 
   puts
