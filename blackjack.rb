@@ -55,8 +55,8 @@ def points(hand)
 
   # If the sum is greater than 21 (busted), re-calculate one or more aces as 1s
   if pts > 21
-    aces_number = hand.map { |card| card[0..-2] }.select! {|rank| rank == "A" }.size
-    aces_number.times do
+    aces = hand.map { |card| card[0..-2] }.select { |rank| rank == "A" }.size
+    aces.times do
       pts -= 10
       break if pts <= 21
     end
@@ -68,7 +68,7 @@ def card_points(card)
   rank_points[card[0..-2]]
 end
 
-def show_cards(player_hand, dealer_hand, final = false)
+def show_cards(player_hand, dealer_hand, player_name, final = false)
 
   clear_shell
   puts
@@ -96,7 +96,7 @@ def show_cards(player_hand, dealer_hand, final = false)
   puts cards_str
 
   puts
-  puts "Your cards:"
+  puts "#{player_name}'s cards:"
   cards_str = ("+———+ " * player_hand.size + "\n").cyan
 
   player_hand.each do |card|
@@ -112,27 +112,27 @@ def show_cards(player_hand, dealer_hand, final = false)
   puts cards_str
 end
 
-def game_state_message(game_state)
-
+def game_state_message(game_state, player_name)
+  player = player_name.upcase
   case game_state
   when "player blackjack"
-    "*** YOU WON ***  You have blackjack!".green
+    "*** #{player} WON ***  You have blackjack!".green
   when "dealer blackjack"
-    "*** YOU LOST ***  Dealer has blackjack!".red
+    "*** #{player} LOST ***  Dealer has blackjack!".red
   when "player busted"
-    "*** YOU LOST ***  Busted!".red
+    "*** #{player} LOST ***  Busted!".red
   when "dealer busted"
-    "*** YOU WON ***  Dealer busted!".green
+    "*** #{player} WON ***  Dealer busted!".green
   when "player won"
-    "*** YOU WON ***  You have more points!".green
+    "*** #{player} WON ***  You have more points!".green
   when "dealer won"
-    "*** YOU LOST ***  Dealer has more points!".red
+    "*** #{player} LOST ***  Dealer has more points!".red
   when "tie blackjack"
     "*** IT'S A TIE ***  Both have blackjack!".yellow
   when "tie busted"
     "*** IT'S A TIE ***  Both busted!".yellow
   when "tie points"
-    "*** IT'S A TIE ***  Your points are equal!".yellow
+    "*** IT'S A TIE ***  You have equal number of points!".yellow
   else
     ""
   end
@@ -193,6 +193,15 @@ def evaluate_state(player_hand, dealer_hand, final = false)
 end
 
 
+clear_shell
+puts "What is your name?"
+player_name = gets.chomp
+puts
+puts "Hi, #{player_name}"
+puts
+puts "Let the game begin!".yellow.bold
+sleep 2
+
 # Main game loop
 begin
 
@@ -211,9 +220,9 @@ begin
       break if game_state != ""
 
       clear_shell
-      show_cards(player_hand, dealer_hand)
+      show_cards(player_hand, dealer_hand, player_name)
       puts
-      puts "=> Do you want to (H)it or (S)tand?"
+      puts "=> Do you want to (H)it or (S)tand?".white.bold
 
       begin
         player_move = gets.chomp.downcase
@@ -225,9 +234,9 @@ begin
     # Dealer moves
     while points(dealer_hand) < 17 && game_state == ""
       clear_shell
-      show_cards(player_hand, dealer_hand)
+      show_cards(player_hand, dealer_hand, player_name)
       puts
-      puts "Dealer is thinking ..."
+      puts "Dealer is thinking ...".white.bold
       sleep 1
       hit(deck, dealer_hand)
     end
@@ -239,12 +248,12 @@ begin
   end
 
   clear_shell
-  show_cards(player_hand, dealer_hand, true)
+  show_cards(player_hand, dealer_hand, player_name, true)
   puts
-  puts "=> Game over:"
-  puts game_state_message(game_state)
+  puts "=> Game over:".white.bold
+  puts game_state_message(game_state, player_name).bold
   puts
-  puts "=> Do you want to play again? (y/n)"
+  puts "=> Do you want to play again? (y/n)".white.bold
   again = gets.chomp.downcase
 
 end until again != "y"
