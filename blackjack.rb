@@ -50,7 +50,18 @@ def suits
 end
 
 def points(hand)
-  hand.map { |card| card_points(card) }.inject(:+)
+  # Calculate the sum of all card values, aces as 11s
+  pts = hand.map { |card| card_points(card) }.inject(:+)
+
+  # If the sum is greater than 21 (busted), re-calculate one or more aces as 1s
+  if pts > 21
+    aces_number = hand.map { |card| card[0..-2] }.select! {|rank| rank == "A" }.size
+    aces_number.times do
+      pts -= 10
+      break if pts <= 21
+    end
+  end
+  pts
 end
 
 def card_points(card)
@@ -61,22 +72,7 @@ def show_cards(player_hand, dealer_hand, final = false)
 
   clear_shell
   puts
-  puts "Your cards:"
-  cards_str = ("+———+ " * player_hand.size + "\n").cyan
-
-  player_hand.each do |card|
-    cards_str += "|".cyan
-    cards_str += "#{card[0..-2].white}"
-    cards_str += ['♥', '♦'].include?(card[-1]) ? card[-1].red : card[-1].blue
-    cards_str += " " if card.length < 3
-    cards_str += "| ".cyan
-  end
-  cards_str += "= #{points(player_hand)}\n".cyan
-
-  cards_str += ("+———+ " * player_hand.size).cyan
-  puts cards_str
-
-  puts
+  
   puts "Dealer cards:"
   cards_str = ("+———+ " * dealer_hand.size + "\n").yellow
 
@@ -97,6 +93,22 @@ def show_cards(player_hand, dealer_hand, final = false)
 
   cards_str += "\n"
   cards_str += ("+———+ " * dealer_hand.size).yellow
+  puts cards_str
+
+  puts
+  puts "Your cards:"
+  cards_str = ("+———+ " * player_hand.size + "\n").cyan
+
+  player_hand.each do |card|
+    cards_str += "|".cyan
+    cards_str += "#{card[0..-2].white}"
+    cards_str += ['♥', '♦'].include?(card[-1]) ? card[-1].red : card[-1].blue
+    cards_str += " " if card.length < 3
+    cards_str += "| ".cyan
+  end
+  cards_str += "= #{points(player_hand)}\n".cyan
+
+  cards_str += ("+———+ " * player_hand.size).cyan
   puts cards_str
 end
 
@@ -201,13 +213,13 @@ begin
       clear_shell
       show_cards(player_hand, dealer_hand)
       puts
-      puts "Do you want to (H)it or (S)tand?"
+      puts "=> Do you want to (H)it or (S)tand?"
 
       begin
         player_move = gets.chomp.downcase
       end until ['h', 's'].include?(player_move)
-      hit(deck, player_hand) if player_move == 'h'
 
+      hit(deck, player_hand) if player_move == 'h'
     end until player_move != 'h'
 
     # Dealer moves
@@ -216,7 +228,7 @@ begin
       show_cards(player_hand, dealer_hand)
       puts
       puts "Dealer is thinking ..."
-      sleep 1.5
+      sleep 1
       hit(deck, dealer_hand)
     end
 
@@ -229,10 +241,10 @@ begin
   clear_shell
   show_cards(player_hand, dealer_hand, true)
   puts
+  puts "=> Game over:"
   puts game_state_message(game_state)
   puts
-  puts
-  puts "Do you want to play again? (y/n)"
+  puts "=> Do you want to play again? (y/n)"
   again = gets.chomp.downcase
 
 end until again != "y"
