@@ -29,46 +29,47 @@ require 'colorize'
 # If, however, the dealer stays, then we compare the sums of the two hands 
 # between the player and dealer; higher value wins.
 
+# More advanced rules can be found here:
+# http://www.pagat.com/banking/blackjack.html
 
-### Build a deck
-#
 
-def ranks
-  rnks = {}
-  (2..10).each { |num| rnks[num.to_s] = num.to_s }
-  rnks.merge!({ "J" => "Jack", "Q" => "Queen", "K" => "King", "A" => "Ace" })
+
+def get_ranks
+  ranks = {}
+  (2..10).each { |num| ranks[num.to_s] = num.to_s }
+  ranks.merge!({ "J" => "Jack", "Q" => "Queen", "K" => "King", "A" => "Ace" })
 end
 
-def rank_points
-  rnk_points = {}
-  (2..10).each { |num| rnk_points[num.to_s] = num }
-  rnk_points.merge!({ "J" => 10, "Q" => 10, "K" => 10, "A" => 11 })
+def get_rank_points
+  rank_points = {}
+  (2..10).each { |num| rank_points[num.to_s] = num }
+  rank_points.merge!({ "J" => 10, "Q" => 10, "K" => 10, "A" => 11 })
 end
 
-def suits
+def get_suits
   { "♠" => "spades", "♥" => "hearts", "♦" => "diamonds", "♣" => "clubs" }
 end
 
-def points(hand)
+def get_points(hand)
   # Calculate the sum of all card values, aces as 11s
-  pts = hand.map { |card| card_points(card) }.inject(:+)
+  points = hand.map { |card| get_card_points(card) }.inject(:+)
 
   # If the sum is greater than 21 (busted), re-calculate one or more aces as 1s
-  if pts > 21
-    aces = hand.map { |card| card[0..-2] }.select { |rank| rank == "A" }.size
+  if points > 21
+    aces = hand.count { |card| card[0..-2] == "A" }
     aces.times do
-      pts -= 10
-      break if pts <= 21
+      points -= 10
+      break if points <= 21
     end
   end
-  pts
+  points
 end
 
-def card_points(card)
-  rank_points[card[0..-2]]
+def get_card_points(card)
+  get_rank_points[card[0..-2]]
 end
 
-def show_cards(player_hand, dealer_hand, player_name, final = false)
+def show_cards(player_hand, dealer_hand, player_name, hide_dealer_cards = true)
 
   clear_shell
   puts
@@ -78,7 +79,7 @@ def show_cards(player_hand, dealer_hand, player_name, final = false)
 
   dealer_hand.each_with_index do |card, index|
     cards_str += "|".yellow
-    if index != 0 && final == false
+    if index != 0 && hide_dealer_cards
       card = "-X-"
       cards_str += "-X-".light_black
     else
@@ -89,7 +90,7 @@ def show_cards(player_hand, dealer_hand, player_name, final = false)
     cards_str += "| ".yellow
   end
 
-  cards_str += "= #{points(dealer_hand)}".yellow if final == true
+  cards_str += "= #{get_points(dealer_hand)}".yellow if !hide_dealer_cards
 
   cards_str += "\n"
   cards_str += ("+———+ " * dealer_hand.size).yellow
@@ -106,11 +107,12 @@ def show_cards(player_hand, dealer_hand, player_name, final = false)
     cards_str += " " if card.length < 3
     cards_str += "| ".cyan
   end
-  cards_str += "= #{points(player_hand)}\n".cyan
+  cards_str += "= #{get_points(player_hand)}\n".cyan
 
   cards_str += ("+———+ " * player_hand.size).cyan
   puts cards_str
 end
+
 
 def game_state_message(game_state, player_name)
   player = player_name.upcase
@@ -136,7 +138,6 @@ def game_state_message(game_state, player_name)
   else
     ""
   end
-
 end
 
 def clear_shell
@@ -156,8 +157,8 @@ end
 def build_deck
   new_deck = []
   6.times do
-    ranks.keys.each do |rank|
-      suits.keys.each { |suit| new_deck.push "#{rank}#{suit}" }
+    get_ranks.keys.each do |rank|
+      get_suits.keys.each { |suit| new_deck.push "#{rank}#{suit}" }
     end
   end
   new_deck
@@ -167,10 +168,10 @@ def hit(deck, hand)
   hand.push(deal(deck).first)
 end
 
-def evaluate_state(player_hand, dealer_hand, final = false)
+def evaluate_state(player_hand, dealer_hand, final_count = false)
 
-  player = points(player_hand)
-  dealer = points(dealer_hand)
+  player = get_points(player_hand)
+  dealer = get_points(dealer_hand)
 
   if player > 21
     dealer > 21 ? "tie busted" : "player busted"
@@ -180,7 +181,7 @@ def evaluate_state(player_hand, dealer_hand, final = false)
     dealer == 21 ? "tie blackjack" : "player blackjack"
   elsif dealer == 21
     player == 21 ? "tie blackjack" : "dealer blackjack"
-  elsif final == true
+  elsif final_count
     if player == dealer
       "tie points"
     else
@@ -189,18 +190,18 @@ def evaluate_state(player_hand, dealer_hand, final = false)
   else
     ""
   end
-
 end
 
 
 clear_shell
-puts "What is your name?"
+puts "=> What is your name?".white.bold
+puts
 player_name = gets.chomp
 puts
-puts "Hi, #{player_name}"
+puts "=> Hi, #{player_name}"
 puts
-puts "Let the game begin!".yellow.bold
-sleep 2
+puts "=> Let the game begin!".yellow.bold
+sleep 1
 
 # Main game loop
 begin
@@ -232,12 +233,12 @@ begin
     end until player_move != 'h'
 
     # Dealer moves
-    while points(dealer_hand) < 17 && game_state == ""
+    while get_points(dealer_hand) < 17 && game_state == ""
       clear_shell
-      show_cards(player_hand, dealer_hand, player_name)
+      show_cards(player_hand, dealer_hand, player_name, false)
       puts
-      puts "Dealer is thinking ...".white.bold
-      sleep 1
+      puts "=> Dealer is thinking ...".white.bold
+      sleep 1.5
       hit(deck, dealer_hand)
     end
 
@@ -248,7 +249,7 @@ begin
   end
 
   clear_shell
-  show_cards(player_hand, dealer_hand, player_name, true)
+  show_cards(player_hand, dealer_hand, player_name, false)
   puts
   puts "=> Game over:".white.bold
   puts game_state_message(game_state, player_name).bold
