@@ -74,7 +74,7 @@ def show_cards(player_hand, dealer_hand, player_name, hide_dealer_cards = true)
   clear_shell
   puts
   
-  puts "Dealer cards:"
+  puts "Dealer's cards:"
   cards_str = ("+———+ " * dealer_hand.size + "\n").yellow
 
   dealer_hand.each_with_index do |card, index|
@@ -215,15 +215,18 @@ begin
 
   loop do
 
-    # Player moves
+    ## Player moves
+    # (Sep 27, 11:30) Changed the game rule to allow the player 
+    # to hit and possibly achieve a tie if the dealer has 21 right away.
+    # Dealer does not have this option. If a player achieves 21, the dealer always stays.
+    # I think these rules are more correct, bit not 100% sure.
     begin
-      game_state = evaluate_state(player_hand, dealer_hand)
-      break if game_state != ""
+      break if get_points(player_hand) >= 21
 
       clear_shell
       show_cards(player_hand, dealer_hand, player_name)
       puts
-      puts "=> Do you want to (H)it or (S)tand?".white.bold
+      puts "=> Do you want to (H)it or (S)tay?".white.bold
 
       begin
         player_move = gets.chomp.downcase
@@ -231,6 +234,8 @@ begin
 
       hit(deck, player_hand) if player_move == 'h'
     end until player_move != 'h'
+
+    game_state = evaluate_state(player_hand, dealer_hand)
 
     # Dealer moves
     while get_points(dealer_hand) < 17 && game_state == ""
