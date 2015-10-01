@@ -36,7 +36,7 @@ require 'colorize'
 
 def get_ranks
   ranks = {}
-  (2..10).each { |num| ranks[num.to_s] = num.to_s }
+  ('2'..'10').each { |num_str| ranks[num_str] = num_str }
   ranks.merge!({ "J" => "Jack", "Q" => "Queen", "K" => "King", "A" => "Ace" })
 end
 
