@@ -1,53 +1,46 @@
 require 'pry'
 require 'yaml'
 
-def get_calc_str
+def calc_str
   puts "> #{message(:prompt)}"
   puts
   gets.chomp
 end
 
-def calculate(str)
+def parse_and_calculate(str)
   puts; exit if str == message(:exit)
 
-  str = str.delete(" ")
+  str = str.delete(' ')
 
-  return message('do_not_understand') unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
+  return message('do_not_understand') unless str =~ /^\d+[+-\/:*%]\d+$/
 
   # Calculate using the built-in eval method
   # return eval(str)
 
   # Calculate using my own regex-based method
-  m = /^(?<first>\d+)(?<operator>[+-\/:*%])(?<second>\d+)$/.match(str)
+  first, operator, second = /(^(\d+)([+-\/:*%])(\d+)$)/.match(str).captures
 
-  res = case m["operator"]
-        when "+"
-          m["first"].to_i + m["second"].to_i
-        when "-"
-          m["first"].to_i - m["second"].to_i
-        when "*"
-          m["first"].to_i * m["second"].to_i
-        when "/", ":"
-          m["first"].to_f / m["second"].to_i
-        when "%"
-          m["first"].to_i % m["second"].to_i
-        else
-          nil
-        end
+  '= ' + calculate(first, operator, second).to_s
+end
 
-  "= " + res.to_s
+def calculate(first, operator, second)
+  case operator
+  when '+' then first.to_i + second.to_i
+  when '-' then first.to_i - second.to_i
+  when '*' then first.to_i * second.to_i
+  when '/', ':' then first.to_f / second.to_i
+  when '%' then first.to_i % second.to_i
+  end
 end
 
 def choose_language
-  begin
-    puts "Choose your language: (E)nglish or (R)ussian"
+  loop do
+    puts 'Choose your language: (E)nglish or (R)ussian'
     language = gets.chomp.downcase
-  end until %w(r ru rus russian e en eng english).include? language
-  if %w(r ru rus russian).include? language
-    'ru'
-  else
-    'en'
+    break if %w(r ru rus russian e en eng english).include? language
   end
+  return 'ru' if %w(r ru rus russian).include? language
+  'en'
 end
 
 def message(msg)
@@ -56,10 +49,9 @@ end
 
 system('clear')
 LANGUAGE = choose_language
-MESSAGES = YAML::load_file('calc_messages.yml')
+MESSAGES = YAML.load_file('calc_messages.yml')
 
 loop do
-  calc_str = get_calc_str
-  puts calculate(calc_str)
+  puts parse_and_calculate(calc_str)
   puts
 end
