@@ -1,0 +1,9 @@
+ru:
+  prompt: "Что вы хотите посчитать? (Введите 'выход', чтобы закончить.)"
+  exit: 'выход'
+  do_not_understand: "Я не понимаю. Попробуйте что-то попроще, например '1+1'."
+
+en:
+  prompt: "What do you want to calculate? (Enter 'exit' to stop.)"
+  exit: 'exit'
+  do_not_understand: "I do not understand. Try something simpler like '1+1'."

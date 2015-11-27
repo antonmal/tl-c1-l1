@@ -1,18 +1,19 @@
 require 'pry'
+require 'yaml'
 
-def get_calc_str(prompt)
-  puts " . . . "
-  puts "> #{prompt}"
+def get_calc_str
+  puts "> #{message(:prompt)}"
+  puts
   gets.chomp
 end
 
 def calculate(str)
-  exit if str == "exit"
+  puts; exit if str == message(:exit)
 
   str = str.delete(" ")
-  
-  return "I do not understand. Try something simpler like '1+1'." unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
-  
+
+  return message('do_not_understand') unless str =~ /^(\d+)([+-\/:*%])(\d+)$/
+
   # Calculate using the built-in eval method
   # return eval(str)
 
@@ -37,14 +38,28 @@ def calculate(str)
   "= " + res.to_s
 end
 
-calc_prompt = "What do you want to calculate? (Enter 'exit' to stop.)"
-system('clear')
-
-loop do
-  puts calculate(get_calc_str(calc_prompt))
-  sleep 2
-  system('clear')
+def choose_language
+  begin
+    puts "Choose your language: (E)nglish or (R)ussian"
+    language = gets.chomp.downcase
+  end until %w(r ru rus russian e en eng english).include? language
+  if %w(r ru rus russian).include? language
+    'ru'
+  else
+    'en'
+  end
 end
 
+def message(msg)
+  MESSAGES[LANGUAGE][msg.to_s]
+end
 
+system('clear')
+LANGUAGE = choose_language
+MESSAGES = YAML::load_file('calc_messages.yml')
 
+loop do
+  calc_str = get_calc_str
+  puts calculate(calc_str)
+  puts
+end
