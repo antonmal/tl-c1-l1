@@ -25,11 +25,11 @@ end
 
 def calculate(first, operator, second)
   case operator
-  when '+' then first.to_i + second.to_i
-  when '-' then first.to_i - second.to_i
-  when '*' then first.to_i * second.to_i
+  when '+'      then first.to_i + second.to_i
+  when '-'      then first.to_i - second.to_i
+  when '*'      then first.to_i * second.to_i
   when '/', ':' then first.to_f / second.to_i
-  when '%' then first.to_i % second.to_i
+  when '%'      then first.to_i % second.to_i
   end
 end
 
